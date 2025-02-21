@@ -35,13 +35,16 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(main main.c )
+add_executable(main 
+        main.c
+        inc/ssd1306.c
+        )
 
 pico_set_program_name(main "main")
 pico_set_program_version(main "0.1")
 
 # Generate PIO header
-pico_generate_pio_header(main ${CMAKE_CURRENT_LIST_DIR}/blink.pio)
+pico_generate_pio_header(main ${CMAKE_CURRENT_LIST_DIR}/ws2812b.pio)
 
 # Modify the below lines to enable/disable output over UART/USB
 pico_enable_stdio_uart(main 0)
@@ -60,7 +63,9 @@ target_include_directories(main PRIVATE
 target_link_libraries(main 
         hardware_i2c
         hardware_pio
-        
+        hardware_pwm
+        hardware_adc
+        hardware_clocks
         )
 
 pico_add_extra_outputs(main)
