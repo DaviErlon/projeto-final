@@ -41,6 +41,7 @@ int main()
     i2c_configuracoes();
     gpio_configuracoes();
     pwm_configuracoes();
+    adc_configuracoes();
 
     // configurações do display
     add_repeating_timer_ms(1000, timer_callback, NULL, &meu_timer);
@@ -49,11 +50,6 @@ int main()
     ssd1306_draw_string(&ssd, "A START", 36, 47);
     ssd1306_pixel(&ssd, 44, 53, true);
     ssd1306_send_data(&ssd);
-
-    //configurações do termometro
-    adc_init();
-    adc_gpio_init(JOY_Y); 
-    adc_select_input(0); 
 
     char buffer[3];
 
@@ -123,7 +119,7 @@ int main()
             ssd1306_pixel(&ssd, 44, 53, true);
             ssd1306_send_data(&ssd);
 
-            flag = 0x00;
+            flag = 0x08;
         }
     }
 }
@@ -133,6 +129,13 @@ int main()
 * Abaixo se encontram as funções auxiliares
 *
 */ 
+
+void adc_configuracoes(void)
+{
+    adc_init();
+    adc_gpio_init(JOY_Y); 
+    adc_select_input(0); 
+}
 
 void pwm_configuracoes(void)
 {
@@ -232,10 +235,12 @@ bool timer_callback(repeating_timer_t *rt)
 bool timer_callback1(repeating_timer_t *rt)
 {   
     static bool flag1 = true;
+
     gpio_set_function(BUZZER_A, GPIO_FUNC_PWM);
     gpio_put(BUZZER_A, true);
     gpio_set_function(BUZZER_B, GPIO_FUNC_PWM);
     gpio_put(BUZZER_B, true);
+
     if(temperatura != 36 && temperatura != 37)
     {   
         gpio_set_function(BUZZER_A, GPIO_FUNC_SIO);
@@ -244,7 +249,6 @@ bool timer_callback1(repeating_timer_t *rt)
         gpio_put(BUZZER_B, false);
         ssd1306_draw_string(&ssd, "         ", 28, 12);
         gpio_put(LED_G, false);
-
         flag |= 0x08;
         return false;
     }
@@ -290,6 +294,18 @@ void gpio_callback1(uint gpio, uint32_t events)
     uint32_t tempo_agora = to_ms_since_boot(get_absolute_time());
     if (tempo_agora - tempo_antes > 200)
     {   
+        // caso haja uma interrupção quando tiver em alarme
+        if (!(flag & 0x08))
+        {
+            gpio_set_function(BUZZER_A, GPIO_FUNC_SIO);
+            gpio_put(BUZZER_A, false);
+            gpio_set_function(BUZZER_B, GPIO_FUNC_SIO);
+            gpio_put(BUZZER_B, false);
+            ssd1306_draw_string(&ssd, "         ", 28, 12);
+            gpio_put(LED_G, false);
+            flag |= 0x08;
+        }
+
         flag = 0x04;
         gpio_set_irq_enabled(BOT_B, GPIO_IRQ_EDGE_FALL, false);
         gpio_set_irq_enabled_with_callback(BOT_A, GPIO_IRQ_EDGE_FALL, true, gpio_callback);
