@@ -44,6 +44,8 @@ int main()
 
     // configurações do display
     add_repeating_timer_ms(1000, timer_callback, NULL, &meu_timer);
+    ssd1306_draw_string(&ssd, "MAMADEIRA", 28, 10);
+    ssd1306_draw_string(&ssd, "SMART", 44, 20);
     ssd1306_draw_string(&ssd, "A START", 36, 47);
     ssd1306_pixel(&ssd, 44, 53, true);
     ssd1306_send_data(&ssd);
@@ -61,6 +63,12 @@ int main()
         {   
             ssd1306_fill(&ssd, false);
             ssd1306_draw_string(&ssd, "    C", 28, 28);
+            ssd1306_hline(&ssd, 55, 56, 28, true);
+            ssd1306_vline(&ssd, 54, 29, 30, true);
+            ssd1306_hline(&ssd, 55, 56, 31, true);
+            ssd1306_vline(&ssd, 57, 29, 30, true);
+            ssd1306_draw_string(&ssd, "B STOP", 36, 47);
+            ssd1306_pixel(&ssd, 44, 53, true);
             flag &= ~(0x01);
         }
         if (flag & 0x02)
@@ -109,6 +117,8 @@ int main()
         {
             ssd1306_fill(&ssd, false);
             add_repeating_timer_ms(1000, timer_callback, NULL, &meu_timer);
+            ssd1306_draw_string(&ssd, "MAMADEIRA", 28, 10);
+            ssd1306_draw_string(&ssd, "SMART", 44, 20);
             ssd1306_draw_string(&ssd, "A START", 36, 47);
             ssd1306_pixel(&ssd, 44, 53, true);
             ssd1306_send_data(&ssd);
@@ -123,6 +133,7 @@ int main()
 * Abaixo se encontram as funções auxiliares
 *
 */ 
+
 void pwm_configuracoes(void)
 {
     gpio_set_function(BUZZER_A, GPIO_FUNC_PWM);
