@@ -11,7 +11,13 @@ uint32_t valor_rgb(uint8_t, uint8_t, uint8_t);
 void set_led(uint8_t, uint8_t, uint8_t, uint8_t);
 void clear_leds(void);
 void print_leds(void);
-bool meu_callback(repeating_timer_t*);
 void gpio_configuracoes(void);
+void pio_configuracoes(void);
+void i2c_configuracoes(void);
+void pwm_configuracoes(void);
+bool timer_callback(repeating_timer_t*);
+bool timer_callback1(repeating_timer_t*);
+void gpio_callback(uint, uint32_t);
+void gpio_callback1(uint, uint32_t);
 
 #endif
