@@ -20,5 +20,6 @@ bool timer_callback(repeating_timer_t*);
 bool timer_callback1(repeating_timer_t*);
 void gpio_callback(uint, uint32_t);
 void gpio_callback1(uint, uint32_t);
+void cores(void);
 
 #endif

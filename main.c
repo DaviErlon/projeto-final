@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "pico/multicore.h"
 #include "pico/stdlib.h"
 #include "hardware/pwm.h"
 #include "hardware/adc.h"
@@ -43,6 +44,9 @@ int main()
     pwm_configuracoes();
     adc_configuracoes();
 
+    // configurações dos leds
+    multicore_launch_core1(cores);
+
     // configurações do display
     add_repeating_timer_ms(1000, timer_callback, NULL, &meu_timer);
     ssd1306_draw_string(&ssd, "MAMADEIRA", 28, 10);
@@ -65,6 +69,7 @@ int main()
             ssd1306_vline(&ssd, 57, 29, 30, true);
             ssd1306_draw_string(&ssd, "B STOP", 36, 47);
             ssd1306_pixel(&ssd, 44, 53, true);
+            flag |= 0x10;
             flag &= ~(0x01);
         }
         if (flag & 0x02)
@@ -118,7 +123,6 @@ int main()
             ssd1306_draw_string(&ssd, "A START", 36, 47);
             ssd1306_pixel(&ssd, 44, 53, true);
             ssd1306_send_data(&ssd);
-
             flag = 0x08;
         }
     }
@@ -215,6 +219,7 @@ void print_leds(void)
     }
 }
 
+// função para animação das bordas da tela inicial
 bool timer_callback(repeating_timer_t *rt)
 {
     static bool piscar = true;
@@ -232,6 +237,7 @@ bool timer_callback(repeating_timer_t *rt)
     return true;
 }
 
+// função para o alarme da temperatura ideal
 bool timer_callback1(repeating_timer_t *rt)
 {   
     static bool flag1 = true;
@@ -273,6 +279,7 @@ bool timer_callback1(repeating_timer_t *rt)
     return true;
 }
 
+// função para o botão A na tela inicial
 void gpio_callback(uint gpio, uint32_t events)
 {   
     uint32_t tempo_agora = to_ms_since_boot(get_absolute_time());
@@ -289,6 +296,7 @@ void gpio_callback(uint gpio, uint32_t events)
     gpio_acknowledge_irq(gpio, events);
 }
 
+// função para o notão B na tela inicial 
 void gpio_callback1(uint gpio, uint32_t events)
 {
     uint32_t tempo_agora = to_ms_since_boot(get_absolute_time());
@@ -314,4 +322,46 @@ void gpio_callback1(uint gpio, uint32_t events)
     }
 
     gpio_acknowledge_irq(gpio, events);
+}
+
+void cores(void)
+{   
+    uint8_t cor;
+    while(true)
+    {
+        if(flag & 0x10)
+        {
+            if (temperatura < 36)
+            {
+                cor = (int8_t)((temperatura + 41.0f ) / 15.0f);
+                for(uint8_t i = 0; i < LED_COUNT; i++)
+                {
+                    set_led(i, cor, cor, 5);
+                }
+                print_leds();
+            }
+            else if (temperatura > 37)
+            {
+                cor = abs((int8_t)((temperatura - 37.0f) / 17.4f) - 5);
+                for(uint8_t i = 0; i < LED_COUNT; i++)
+                {
+                    set_led(i, 5, cor, cor);
+                }
+                print_leds();
+            }
+            else 
+            {
+                for(uint8_t i = 0; i < LED_COUNT; i++)
+                {
+                    set_led(i, 5, 5, 5);
+                }
+                print_leds();
+            }
+        }
+
+        clear_leds();
+        print_leds();
+
+        sleep_ms(100);
+    }
 }
